@@ -1,23 +1,32 @@
-# ::::::::::::::::::::::
-# Dockerfile.02
-# ::::::::::::::::::::::
-FROM python:2.7-alpine
+# ------------------------------------------------------------------------------
+# Dockerfile to build Oracle Linux container
+# images based on Oracle Linux 8.2
+# ------------------------------------------------------------------------------
+FROM oraclelinux:8.2
 
-RUN mkdir /app
-WORKDIR /app
 
-COPY index.html index.html
+RUN dnf install -y httpd
+RUN dnf install -y sudo
+RUN dnf install -y which
+RUN dnf install -y perl
+
+
+#RUN mkdir -p /var/www/cgi-bin
+WORKDIR /var/www/cgi-bin
+COPY counter.pl counter.pl
+COPY counter.txt counter.txt
+RUN chown apache:apache counter.pl counter.txt
+
+#RUN mkdir -p /var/www/html
+WORKDIR /var/www/html
 COPY AndialySokone.jpg AndialySokone.jpg
-COPY application.py application.py
+COPY index.html index.html
+RUN chown apache:apache index.html AndialySokone.jpg
 
-CMD curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-CMD yum install -y python
-CMD yum update -y python
+LABEL maintainer="asokone@thecloudedu.com" \
+version="1.0.1"
 
-CMD yum install -y pip
+EXPOSE 80
 
-COPY . .
-LABEL maintainer="Andialy Sokone<asokone@thecloudedu.com>" \
-version="1.0"
+ENTRYPOINT /usr/sbin/httpd -D FOREGROUND
 
-CMD python -m SimpleHTTPServer 5000
